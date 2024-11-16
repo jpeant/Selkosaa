@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<!-- Many thanks to weather data provider met.no / yr.no. If we ever meet, beers are on me ;) -->
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Sää tiedotus selkokielellä Suomen kaupungeista">
+    <meta name="keywords" content="Sää, selkokieli, selkosää">
+    <meta name="author" content="jpeant@github">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selkosää</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #e0f7fa;
+            margin: 0;
+            text-align: center;
+        }
+        .header {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        .instructions, .location, .temperature, .weather-desc {
+            font-size: 1.5em;
+            margin: 10px;
+        }
+        .footer {
+            padding-top: 60px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">Selkosää Sivusto</div>
+    <div class="instructions">
+        <p>Selkosää-sivusto tarjoaa helppokäyttöisen tavan tarkistaa Suomen kaupunkien säätilanne.</p>
+        <p>Käyttöohjeet:</p>
+        <ol>
+            <li>Mene selaimessasi osoitteeseen <code>https://selkosaa.juubas.com/tiedotus.html?location=Kaupunki</code></li>
+            <li>Muista antaa lupa äänitilalle ja kolmannen osapuolen sisään kirjautumiselle selaimessa.</li>
+            <li>Sivusto lataa automaattisesti valitun paikkakunnan säätilan.</li>
+            <li>Ääniominaisuus lukee tämän hetken säätilan selkokielellä.</li>
+        </ol>
+    </div>
+    <div class="location">Paikkakunta: Ladataan...</div>
+    <div class="temperature">Lämpötila: Ladataan...</div>
+    <div class="weather-desc">Säätila: Ladataan...</div>
+    <script>
+        async function fetchWeatherData(city) {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${city},Finland&format=json`);
+            const data = await response.json();
+            if (data.length > 0) {
+                const { lat, lon } = data[0];
+                const weatherResponse = await fetch(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`);
+                const weatherData = await weatherResponse.json();
+                const timeseries = weatherData.properties.timeseries[0];
+                const temperature = Math.round(timeseries.data.instant.details.air_temperature);
+                document.querySelector('.location').textContent = `Paikkakunta: ${city}`;
+                document.querySelector('.temperature').textContent = `Lämpötila: ${temperature}°C`;
+                document.querySelector('.weather-desc').textContent = `Säätila: ${timeseries.data.next_1_hours.summary.symbol_code}`;
+            } else {
+                document.querySelector('.location').textContent = 'Paikkakuntaa ei löydy';
+            }
+        }
+
+        const city = new URLSearchParams(window.location.search).get('location') || 'Helsinki';
+        fetchWeatherData(city);
+    </script>
+            <p class="footer">Säätiedot tarjoaa met.no / yt.no</p>
+            <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="http://selkosaa.juubas.com">Selkosää</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="http://jpeant@github.com">jpeant</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY-NC-SA 4.0<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1" alt=""><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1" alt=""><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/nc.svg?ref=chooser-v1" alt=""><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1" alt=""></a></p>
+</body>
+</html>
