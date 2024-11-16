@@ -1,3 +1,14 @@
+/*####################################################
+#   Name:   weather.js
+#   Usage:  fetch weather data from asked location, show symbol, weather descripition and temperature with voice. 
+#           
+#   Args: location="city name"
+#
+#   Date: 15.11.24
+#   Author: jpeant
+#####################################################*/
+
+
 async function getCoordinatesForLocation(city) {
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${city},Finland&format=json`);
